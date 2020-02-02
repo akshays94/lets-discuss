@@ -20,6 +20,14 @@ elif [ "$1" == "down" ]; then
     echo -e "Shutting down ..."
     docker-compose down
 
+elif [ "$1" == "heroku-logs" ]; then
+    echo -e "Fetching heroku logs ..."
+    heroku logs --tail  
+
+elif [ "$1" == "heroku-bash" ]; then
+    echo -e "Opening heroku bash ..."
+    heroku run bash
+
 else
     echo -e "This command is not supported"
 fi

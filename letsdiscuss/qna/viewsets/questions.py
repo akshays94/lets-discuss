@@ -5,8 +5,8 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import action
 
-from .models import *
-from .serializers import *
+from letsdiscuss.qna.models import *
+from letsdiscuss.qna.serializers import *
 from letsdiscuss.users.models import User
 
 class QuestionViewSet(viewsets.ViewSet):
@@ -122,4 +122,6 @@ class QuestionViewSet(viewsets.ViewSet):
                 'modified_by': voter
             })
 
-        return Response({'message': 'DOWNVOTED'})    
+        return Response({'message': 'DOWNVOTED'})
+
+
