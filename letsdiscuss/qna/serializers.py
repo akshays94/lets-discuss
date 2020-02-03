@@ -52,3 +52,54 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 
         return instance
 
+
+class AnswerSerializer(serializers.ModelSerializer):
+    
+    created_by = UserSerializer()
+
+    class Meta:
+        model = Answer
+        fields = [
+            'id', 'content', 'votes', 'created_by', 'created_on'
+        ]
+
+
+class CreateAnswerSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Answer
+        fields = [
+            'id', 'content', 'votes', 'created_by', 'created_on'
+        ]
+
+    def create(self, validated_data):
+
+        created_by_id = validated_data.pop('created_by')
+        question = validated_data.pop('question')
+        
+        created_by = User.objects.get(id=created_by_id)
+        
+        validated_data.update({
+            'question': question,
+            'created_by': created_by,
+            'modified_by': created_by
+        })
+
+        answer = Answer.objects.create(**validated_data)
+        return answer
+
+
+    def update(self, instance, validated_data):
+
+        created_by_id = validated_data.pop('created_by')
+        created_by = User.objects.get(id=created_by_id)
+        validated_data.update({
+            'created_by': created_by,
+            'modified_by': created_by
+        })
+
+        instance.content = validated_data.get('content')
+        instance.modified_by = validated_data.get('modified_by')
+        instance.save()
+
+        return instance           

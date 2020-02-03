@@ -125,3 +125,33 @@ class QuestionViewSet(viewsets.ViewSet):
         return Response({'message': 'DOWNVOTED'})
 
 
+    @action(methods=['get', 'post'], detail=True)
+    def answers(self, request, pk=None):
+        
+        if request.method == 'GET':
+            
+            queryset = Answer.objects.filter(question=pk)
+            serializer = AnswerSerializer(queryset, many=True)
+            return Response(serializer.data)
+        
+        else:
+
+            try:
+                question = Question.objects.get(id=pk)
+            except Question.DoesNotExist:
+                return Response({'message': 'Question does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+            data = request.data.dict()
+            data.update({
+                'question': question,
+                'created_by': request.user.id
+            })
+            write_serializer = CreateAnswerSerializer(data=data)
+            write_serializer.is_valid(raise_exception=True)
+            instance = write_serializer.create(data)
+            read_serializer = AnswerSerializer(instance)
+            return Response(read_serializer.data)
+
+
+
+

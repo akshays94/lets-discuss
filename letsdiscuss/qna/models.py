@@ -96,3 +96,11 @@ class AnswerVote(BaseModel):
             'vote': '[UPVOTED]' if self.is_upvote else '[DOWNVOTED]',
             'uname': self.created_by.username
         })
+
+@receiver(post_save, sender=AnswerVote)
+def save_answer_votes_count(sender, instance=None, created=False, **kwargs):
+    if created or instance:
+        upvotes = AnswerVote.objects.filter(answer=instance.answer, is_upvote=True).count()    
+        downvotes = AnswerVote.objects.filter(answer=instance.answer, is_upvote=False).count()    
+        instance.answer.votes = upvotes - downvotes
+        instance.answer.save()        

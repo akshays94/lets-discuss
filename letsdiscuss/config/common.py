@@ -3,6 +3,9 @@ from os.path import join
 from distutils.util import strtobool
 import dj_database_url
 from configurations import Configuration
+
+from corsheaders.defaults import default_headers
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -24,12 +27,19 @@ class Common(Configuration):
 
         # Your apps
         'letsdiscuss.users',
-        'letsdiscuss.qna'
+        'letsdiscuss.qna',
 
+        'corsheaders',
+
+    )
+
+    CORS_ORIGIN_WHITELIST = (
+      "http://localhost:8080",
     )
 
     # https://docs.djangoproject.com/en/2.0/topics/http/middleware/
     MIDDLEWARE = (
+        'corsheaders.middleware.CorsMiddleware',
         'django.middleware.security.SecurityMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.middleware.common.CommonMiddleware',
@@ -38,6 +48,7 @@ class Common(Configuration):
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
     )
+
 
     ALLOWED_HOSTS = ["*"]
     ROOT_URLCONF = 'letsdiscuss.urls'
