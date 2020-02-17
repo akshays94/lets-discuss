@@ -40,13 +40,10 @@ class CustomAuthToken(ObtainAuthToken):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         return Response({
-            'token': token.key,
-            'user': {
-              'id': user.pk,
-              'name': '{fn} {ln}'.format(**{
-                'fn': user.first_name,
-                'ln': user.last_name
-              }),
-              'email': user.email
-            },
+            'auth_token': token.key,
+            'id': user.pk,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email
         })

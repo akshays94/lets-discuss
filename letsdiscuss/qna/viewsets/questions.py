@@ -13,7 +13,7 @@ class QuestionViewSet(viewsets.ViewSet):
     
 
     def list(self, request):
-        queryset = Question.objects.all()
+        queryset = Question.objects.all().order_by('-created_on')
         serializer = QuestionSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -28,7 +28,10 @@ class QuestionViewSet(viewsets.ViewSet):
 
 
     def create(self, request):
-        data = request.data.dict()
+        print('\n\n\n', type(request.data))
+        data = request.data
+        if type(data) != dict:
+          data = request.data.dict()
         data.update({
             'created_by': request.user.id
         })
