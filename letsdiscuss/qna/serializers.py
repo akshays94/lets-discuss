@@ -7,11 +7,14 @@ from letsdiscuss.users.models import *
 class QuestionSerializer(serializers.ModelSerializer):
     
     created_by = UserSerializer()
+    is_voted = serializers.ReadOnlyField()
+    is_upvoted = serializers.ReadOnlyField()
+    is_downvoted = serializers.ReadOnlyField()
 
     class Meta:
         model = Question
         fields = [
-            'id', 'title', 'content', 'votes', 'created_by', 'created_on'
+            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted'
         ] 
 
 

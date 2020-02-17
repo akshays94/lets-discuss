@@ -14,13 +14,35 @@ class QuestionViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = Question.objects.all().order_by('-created_on')
+        for question in queryset:
+          the_question_vote = question.questionvote_set.filter(created_by=request.user.id)
+          if the_question_vote.exists():
+            the_question_vote = the_question_vote.first()
+            question.is_voted = True
+            question.is_upvoted = the_question_vote.is_upvote
+            question.is_downvoted = the_question_vote.is_upvote == False
+          else:
+            question.is_voted = False
+            question.is_upvoted = False
+            question.is_downvoted = False    
+
         serializer = QuestionSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
     def retrieve(self, request, pk=None):
         try:
-            original_question = Question.objects.get(id=pk)    
+            original_question = Question.objects.get(id=pk)
+            the_question_vote = original_question.questionvote_set.filter(created_by=request.user.id)
+            if the_question_vote.exists():
+              the_question_vote = the_question_vote.first()
+              original_question.is_voted = True
+              original_question.is_upvoted = the_question_vote.is_upvote
+              original_question.is_downvoted = the_question_vote.is_upvote == False
+            else:
+              original_question.is_voted = False
+              original_question.is_upvoted = False
+              original_question.is_downvoted = False   
         except Question.DoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
         read_serializer = QuestionSerializer(original_question)
@@ -28,7 +50,6 @@ class QuestionViewSet(viewsets.ViewSet):
 
 
     def create(self, request):
-        print('\n\n\n', type(request.data))
         data = request.data
         if type(data) != dict:
           data = request.data.dict()
@@ -127,6 +148,29 @@ class QuestionViewSet(viewsets.ViewSet):
 
         return Response({'message': 'DOWNVOTED'})
 
+    @action(url_path="revoke-vote", methods=['post'], detail=True)
+    def revoke_vote(self, request, pk=None):
+        voter = request.user
+        try:
+            original_question = Question.objects.get(id=pk)    
+        except Question.DoesNotExist:
+            return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            question_vote = QuestionVote.objects.get(created_by=voter, question_id=pk)
+            
+            question_vote.delete()
+
+            upvotes = QuestionVote.objects.filter(question=original_question, is_upvote=True).count()    
+            downvotes = QuestionVote.objects.filter(question=original_question, is_upvote=False).count()    
+            original_question.votes = upvotes - downvotes
+            original_question.save()
+
+            return Response({'message': 'VOTE REVOKED'}) 
+
+        except QuestionVote.DoesNotExist:
+          return Response({'message': 'NOT VOTED'})  
+
 
     @action(methods=['get', 'post'], detail=True)
     def answers(self, request, pk=None):
@@ -144,7 +188,9 @@ class QuestionViewSet(viewsets.ViewSet):
             except Question.DoesNotExist:
                 return Response({'message': 'Question does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-            data = request.data.dict()
+            data = request.data
+            if type(data) != dict:
+              data = request.data.dict()
             data.update({
                 'question': question,
                 'created_by': request.user.id
@@ -154,6 +200,18 @@ class QuestionViewSet(viewsets.ViewSet):
             instance = write_serializer.create(data)
             read_serializer = AnswerSerializer(instance)
             return Response(read_serializer.data)
+
+
+    @action(methods=['get'], detail=True)
+    def votes(self, request, pk=None):
+        try:
+            original_question = Question.objects.get(id=pk)
+            return Response({
+              'votes': original_question.votes
+            })   
+        except Question.DoesNotExist:
+            return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 
