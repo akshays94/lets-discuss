@@ -183,7 +183,18 @@ class QuestionViewSet(viewsets.ViewSet):
         
         if request.method == 'GET':
             
-            queryset = Answer.objects.filter(question=pk).order_by('-is_correct')
+            queryset = Answer.objects.filter(question=pk).order_by('-is_correct', '-created_on')
+            for answer in queryset:
+              the_answer_vote = answer.answervote_set.filter(created_by=request.user.id)
+              if the_answer_vote.exists():
+                the_answer_vote = the_answer_vote.first()
+                answer.is_voted = True
+                answer.is_upvoted = the_answer_vote.is_upvote
+                answer.is_downvoted = the_answer_vote.is_upvote == False
+              else:
+                answer.is_voted = False
+                answer.is_upvoted = False
+                answer.is_downvoted = False
             serializer = AnswerSerializer(queryset, many=True)
             return Response(serializer.data)
         

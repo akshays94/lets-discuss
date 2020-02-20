@@ -113,5 +113,29 @@ class AnswerViewSet(viewsets.ViewSet):
           original_answer.is_correct = True
           original_answer.modified_by = voter
           original_answer.save()
-          return Response({'message': 'MARKED CORRECT'})   
+          return Response({'message': 'MARKED CORRECT'})
+
+
+    @action(url_path="revoke-vote", methods=['post'], detail=True)
+    def revoke_vote(self, request, pk=None):
+        voter = request.user
+        try:
+            original_answer = Answer.objects.get(id=pk)    
+        except Answer.DoesNotExist:
+            return Response({'message': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            answer_vote = AnswerVote.objects.get(created_by=voter, answer_id=pk)
+            
+            answer_vote.delete()
+
+            upvotes = AnswerVote.objects.filter(answer=original_answer, is_upvote=True).count()    
+            downvotes = AnswerVote.objects.filter(answer=original_answer, is_upvote=False).count()    
+            original_answer.votes = upvotes - downvotes
+            original_answer.save()
+
+            return Response({'message': 'VOTE REVOKED'}) 
+
+        except AnswerVote.DoesNotExist:
+          return Response({'message': 'NOT VOTED'})        
 
