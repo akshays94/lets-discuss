@@ -1,5 +1,5 @@
 from django.db import models
-from letsdiscuss.users.models import User
+from letsdiscuss.users.models import User, UserReputation
 from django.utils import timezone
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -48,9 +48,9 @@ class Question(BaseModel):
 
 
 class QuestionVote(BaseModel):
-    
     is_upvote   = models.BooleanField(default=True)
     question    = models.ForeignKey(Question, on_delete=models.CASCADE)
+    # reputation  = models.ForeignKey(UserReputation, on_delete=models.CASCADE)
 
     def __str__(self):
         return '{id}: qid[{qid}] | {title} <<- {vote} ({uname})'.format(**{
@@ -105,4 +105,4 @@ def save_answer_votes_count(sender, instance=None, created=False, **kwargs):
         upvotes = AnswerVote.objects.filter(answer=instance.answer, is_upvote=True).count()    
         downvotes = AnswerVote.objects.filter(answer=instance.answer, is_upvote=False).count()    
         instance.answer.votes = upvotes - downvotes
-        instance.answer.save()        
+        instance.answer.save()
