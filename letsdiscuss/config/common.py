@@ -35,6 +35,7 @@ class Common(Configuration):
 
     CORS_ORIGIN_WHITELIST = (
       "http://localhost:8080",
+      "https://lets-discuss.netlify.com"
     )
 
     # https://docs.djangoproject.com/en/2.0/topics/http/middleware/

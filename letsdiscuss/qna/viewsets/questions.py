@@ -45,6 +45,12 @@ class QuestionViewSet(viewsets.ViewSet):
               original_question.is_downvoted = False   
         except Question.DoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+        original_question.is_created_by_me = \
+          original_question.created_by_id == request.user.id
+
+        original_question.answer_marked_correct = original_question.answer_set.filter(is_correct=True).exists()      
+        
         read_serializer = QuestionSerializer(original_question)
         return Response(read_serializer.data)
 
@@ -177,7 +183,7 @@ class QuestionViewSet(viewsets.ViewSet):
         
         if request.method == 'GET':
             
-            queryset = Answer.objects.filter(question=pk)
+            queryset = Answer.objects.filter(question=pk).order_by('-is_correct')
             serializer = AnswerSerializer(queryset, many=True)
             return Response(serializer.data)
         

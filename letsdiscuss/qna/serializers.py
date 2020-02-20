@@ -10,11 +10,13 @@ class QuestionSerializer(serializers.ModelSerializer):
     is_voted = serializers.ReadOnlyField()
     is_upvoted = serializers.ReadOnlyField()
     is_downvoted = serializers.ReadOnlyField()
+    is_created_by_me = serializers.ReadOnlyField()
+    answer_marked_correct = serializers.ReadOnlyField()
 
     class Meta:
         model = Question
         fields = [
-            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted'
+            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted', 'is_created_by_me', 'answer_marked_correct'
         ] 
 
 
@@ -63,7 +65,7 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = [
-            'id', 'content', 'votes', 'created_by', 'created_on'
+            'id', 'content', 'votes', 'created_by', 'created_on', 'is_correct'
         ]
 
 

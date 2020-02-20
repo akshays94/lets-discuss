@@ -96,3 +96,22 @@ class AnswerViewSet(viewsets.ViewSet):
 
         return Response({'message': 'DOWNVOTED'})
 
+
+    @action(url_path='mark-as-correct', methods=['post'], detail=True)
+    def mark_as_correct(self, request, pk=None):
+        voter = request.user
+        try:
+            original_answer = Answer.objects.get(id=pk)    
+        except Answer.DoesNotExist:
+            return Response({'message': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        is_other_answer_already_marked = Answer.objects.filter(question=original_answer.question, is_correct=True).exists()
+
+        if is_other_answer_already_marked:
+          return Response({'message': 'Some answer of this question is already marked as correct'}, status=status.HTTP_409_CONFLICT)
+        else:
+          original_answer.is_correct = True
+          original_answer.modified_by = voter
+          original_answer.save()
+          return Response({'message': 'MARKED CORRECT'})   
+

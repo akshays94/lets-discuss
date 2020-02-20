@@ -75,12 +75,14 @@ class Answer(BaseModel):
     question    = models.ForeignKey(Question, on_delete=models.CASCADE)
     content     = models.TextField()
     votes       = models.IntegerField(default=0)
+    is_correct  = models.BooleanField(default=False)
 
     def __str__(self):
-        return '{id}: qid[{qid}] | {content}'.format(**{
+        return '{id}: qid[{qid}] | {content} {iscorrect}'.format(**{
             'id': self.id,
             'qid': self.question_id,
-            'content': self.content
+            'content': self.content,
+            'iscorrect': '[CORRECT]' if self.is_correct else ''
         })
 
 
