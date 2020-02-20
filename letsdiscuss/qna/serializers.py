@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from django.utils.timesince import timesince
 
 from letsdiscuss.users.serializers import UserSerializer
 from letsdiscuss.users.models import *
@@ -12,11 +13,19 @@ class QuestionSerializer(serializers.ModelSerializer):
     is_downvoted = serializers.ReadOnlyField()
     is_created_by_me = serializers.ReadOnlyField()
     answer_marked_correct = serializers.ReadOnlyField()
+    created_on_humanized = serializers.SerializerMethodField()
+    created_on_date = serializers.SerializerMethodField()
+
+    def get_created_on_humanized(self, obj):
+        return timesince(obj.created_on)
+
+    def get_created_on_date(self, obj):
+        return obj.created_on.strftime("%d %b %Y, %I:%M %p")
 
     class Meta:
         model = Question
         fields = [
-            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted', 'is_created_by_me', 'answer_marked_correct'
+            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted', 'is_created_by_me', 'answer_marked_correct', 'created_on_humanized', 'created_on_date'
         ] 
 
 
@@ -64,11 +73,19 @@ class AnswerSerializer(serializers.ModelSerializer):
     is_voted = serializers.ReadOnlyField()
     is_upvoted = serializers.ReadOnlyField()
     is_downvoted = serializers.ReadOnlyField()
+    created_on_humanized = serializers.SerializerMethodField()
+    created_on_date = serializers.SerializerMethodField()
 
+    def get_created_on_humanized(self, obj):
+        return timesince(obj.created_on)
+
+    def get_created_on_date(self, obj):
+        return obj.created_on.strftime("%d %b %Y, %I:%M %p")
+    
     class Meta:
         model = Answer
         fields = [
-            'id', 'content', 'votes', 'created_by', 'created_on', 'is_correct', 'is_voted', 'is_upvoted', 'is_downvoted'
+            'id', 'content', 'votes', 'created_by', 'created_on', 'is_correct', 'is_voted', 'is_upvoted', 'is_downvoted', 'created_on_humanized', 'created_on_date'
         ]
 
 
