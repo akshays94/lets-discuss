@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from letsdiscuss.qna.models import *
 from letsdiscuss.qna.serializers import *
 from letsdiscuss.users.models import User
+from letsdiscuss.qna.reputation_engine import ReputationEngine
 
 class AnswerViewSet(viewsets.ViewSet):
     
@@ -39,6 +40,7 @@ class AnswerViewSet(viewsets.ViewSet):
 
         return Response(read_serializer.data)
 
+    
     @action(methods=['post'], detail=True)
     def upvote(self, request, pk=None):
         voter = request.user
@@ -64,6 +66,10 @@ class AnswerViewSet(viewsets.ViewSet):
                 'created_by': voter,
                 'modified_by': voter
             })
+        
+        ReputationEngine(
+          instance=answer_vote, 
+          initiator=voter).create_score_answer_upvote()
 
         return Response({'message': 'UPVOTED'})
 
@@ -133,6 +139,10 @@ class AnswerViewSet(viewsets.ViewSet):
             downvotes = AnswerVote.objects.filter(answer=original_answer, is_upvote=False).count()    
             original_answer.votes = upvotes - downvotes
             original_answer.save()
+
+            ReputationEngine(
+              instance=answer_vote, 
+              initiator=voter).delete_score_answer_revoke_vote()
 
             return Response({'message': 'VOTE REVOKED'}) 
 

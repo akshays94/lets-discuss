@@ -50,7 +50,8 @@ class Question(BaseModel):
 class QuestionVote(BaseModel):
     is_upvote   = models.BooleanField(default=True)
     question    = models.ForeignKey(Question, on_delete=models.CASCADE)
-    # reputation  = models.ForeignKey(UserReputation, on_delete=models.CASCADE)
+    reputation  = models.ForeignKey(UserReputation, 
+                  on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return '{id}: qid[{qid}] | {title} <<- {vote} ({uname})'.format(**{
@@ -76,6 +77,13 @@ class Answer(BaseModel):
     content     = models.TextField()
     votes       = models.IntegerField(default=0)
     is_correct  = models.BooleanField(default=False)
+    
+    answerer_reputation   = models.ForeignKey(UserReputation, 
+                            related_name='answerer_reputation',
+                            on_delete=models.CASCADE, null=True, blank=True)
+    acceptor_reputation   = models.ForeignKey(UserReputation, 
+                            related_name='acceptor_reputation',
+                            on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return '{id}: qid[{qid}] | {content} {iscorrect}'.format(**{
@@ -90,7 +98,10 @@ class AnswerVote(BaseModel):
     
     is_upvote   = models.BooleanField(default=True)
     answer      = models.ForeignKey(Answer, on_delete=models.CASCADE)
-
+    reputation  = models.ForeignKey(UserReputation, 
+                  related_name='vote_reputation',
+                  on_delete=models.CASCADE, null=True, blank=True)
+                  
     def __str__(self):
         return '{id}: aid[{aid}] <<- {vote} ({uname})'.format(**{
             'id': self.id,

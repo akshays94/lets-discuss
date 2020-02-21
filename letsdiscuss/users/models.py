@@ -62,8 +62,10 @@ class UserReputation(models.Model):
 										choices=REPUTATION_CATEGORIES, default='QUSUP')
 
   def __str__(self):
-    return 'id({id}) -> [P{points}] = {name}'.format(**{
+    return 'id({id}) -> {cat} [P({points})] = {name} <- {cb}'.format(**{
       'name': self.user.username,
+      'cb': self.created_by.username,
       'points': self.points,
-      'id': self.id
+      'id': self.id,
+      'cat': self.category
     })

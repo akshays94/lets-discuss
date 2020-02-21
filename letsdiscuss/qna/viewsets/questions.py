@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from letsdiscuss.qna.models import *
 from letsdiscuss.qna.serializers import *
 from letsdiscuss.users.models import User
+from letsdiscuss.qna.reputation_engine import ReputationEngine
 
 class QuestionViewSet(viewsets.ViewSet):
     
@@ -97,6 +98,7 @@ class QuestionViewSet(viewsets.ViewSet):
 
         return Response(read_serializer.data)
 
+    
     @action(methods=['post'], detail=True)
     def upvote(self, request, pk=None):
         voter = request.user
@@ -106,15 +108,15 @@ class QuestionViewSet(viewsets.ViewSet):
             return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
 
         try: 
-            question_vote = QuestionVote.objects.get(created_by=voter, question_id=pk)
+          question_vote = QuestionVote.objects.get(created_by=voter, question_id=pk)
+          
+          if question_vote.is_upvote:
+            return Response({'message': 'ALREADY UPVOTED'}, status=status.HTTP_409_CONFLICT)
+          else:
+            question_vote.is_upvote = True
+            question_vote.modified_by = voter
+            question_vote.save()
             
-            if question_vote.is_upvote:
-                return Response({'message': 'ALREADY UPVOTED'}, status=status.HTTP_409_CONFLICT)
-            else:
-                question_vote.is_upvote = True
-                question_vote.modified_by = voter
-                question_vote.save()
-
         except QuestionVote.DoesNotExist:
             question_vote = QuestionVote.objects.create(**{
                 'question': original_question,
@@ -122,6 +124,10 @@ class QuestionViewSet(viewsets.ViewSet):
                 'created_by': voter,
                 'modified_by': voter
             })
+
+        ReputationEngine(
+          instance=question_vote, 
+          initiator=voter).create_score_question_upvote()
 
         return Response({'message': 'UPVOTED'})
 
@@ -152,6 +158,10 @@ class QuestionViewSet(viewsets.ViewSet):
                 'modified_by': voter
             })
 
+        ReputationEngine(
+          instance=question_vote, 
+          initiator=voter).create_score_question_downvote()
+
         return Response({'message': 'DOWNVOTED'})
 
     @action(url_path="revoke-vote", methods=['post'], detail=True)
@@ -163,16 +173,21 @@ class QuestionViewSet(viewsets.ViewSet):
             return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
 
         try: 
-            question_vote = QuestionVote.objects.get(created_by=voter, question_id=pk)
+          question_vote = QuestionVote.objects.get(created_by=voter, question_id=pk)
+          
+          ReputationEngine(
+            instance=question_vote, 
+            initiator=voter).delete_score_revoke_vote()
+
+          question_vote.delete()
+
+          upvotes = QuestionVote.objects.filter(question=original_question, is_upvote=True).count()    
+          downvotes = QuestionVote.objects.filter(question=original_question, is_upvote=False).count()    
+          original_question.votes = upvotes - downvotes
+          original_question.save()
+
             
-            question_vote.delete()
-
-            upvotes = QuestionVote.objects.filter(question=original_question, is_upvote=True).count()    
-            downvotes = QuestionVote.objects.filter(question=original_question, is_upvote=False).count()    
-            original_question.votes = upvotes - downvotes
-            original_question.save()
-
-            return Response({'message': 'VOTE REVOKED'}) 
+          return Response({'message': 'VOTE REVOKED'})
 
         except QuestionVote.DoesNotExist:
           return Response({'message': 'NOT VOTED'})  
