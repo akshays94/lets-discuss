@@ -98,9 +98,13 @@ class AnswerVote(BaseModel):
     
     is_upvote   = models.BooleanField(default=True)
     answer      = models.ForeignKey(Answer, on_delete=models.CASCADE)
-    reputation  = models.ForeignKey(UserReputation, 
-                  related_name='vote_reputation',
-                  on_delete=models.CASCADE, null=True, blank=True)
+    
+    reputation          = models.ForeignKey(UserReputation, 
+                          related_name='vote_reputation',
+                          on_delete=models.CASCADE, null=True, blank=True)
+    downvote_reputation = models.ForeignKey(UserReputation, 
+                          related_name='downvote_reputation',
+                          on_delete=models.CASCADE, null=True, blank=True)              
                   
     def __str__(self):
         return '{id}: aid[{aid}] <<- {vote} ({uname})'.format(**{

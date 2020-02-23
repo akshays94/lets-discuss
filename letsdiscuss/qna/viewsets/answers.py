@@ -55,9 +55,10 @@ class AnswerViewSet(viewsets.ViewSet):
             if answer_vote.is_upvote:
                 return Response({'message': 'ALREADY UPVOTED'}, status=status.HTTP_409_CONFLICT)
             else:
-                answer_vote.is_upvote = True
-                answer_vote.modified_by = voter
-                answer_vote.save()
+              
+              answer_vote.is_upvote = True
+              answer_vote.modified_by = voter
+              answer_vote.save()
 
         except AnswerVote.DoesNotExist:
             answer_vote = AnswerVote.objects.create(**{
@@ -86,11 +87,12 @@ class AnswerViewSet(viewsets.ViewSet):
             answer_vote = AnswerVote.objects.get(created_by=voter, answer_id=pk)
             
             if not answer_vote.is_upvote:
-                return Response({'message': 'ALREADY DOWNVOTED'}, status=status.HTTP_409_CONFLICT)
+              return Response({'message': 'ALREADY DOWNVOTED'}, status=status.HTTP_409_CONFLICT)
             else:
-                answer_vote.is_upvote = False
-                answer_vote.modified_by = voter
-                answer_vote.save()
+              
+              answer_vote.is_upvote = False
+              answer_vote.modified_by = voter
+              answer_vote.save()
 
         except AnswerVote.DoesNotExist:
             answer_vote = AnswerVote.objects.create(**{
@@ -99,6 +101,10 @@ class AnswerViewSet(viewsets.ViewSet):
                 'created_by': voter,
                 'modified_by': voter
             })
+
+        ReputationEngine(
+          instance=answer_vote, 
+          initiator=voter).create_score_answer_downvote()    
 
         return Response({'message': 'DOWNVOTED'})
 
