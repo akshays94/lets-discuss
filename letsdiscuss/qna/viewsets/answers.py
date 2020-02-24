@@ -125,6 +125,11 @@ class AnswerViewSet(viewsets.ViewSet):
           original_answer.is_correct = True
           original_answer.modified_by = voter
           original_answer.save()
+
+          ReputationEngine(
+            instance=original_answer, 
+            initiator=voter).create_score_answer_accepted()
+
           return Response({'message': 'MARKED CORRECT'})
 
 

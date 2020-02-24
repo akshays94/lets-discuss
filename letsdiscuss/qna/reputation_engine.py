@@ -14,8 +14,10 @@ class ReputationEngine(object):
       'QUSUP': 10,
       'QUSDN': -2,
       'ANSUP': 10,
-      'ASDN1': -2, # Answer downvote
-      'ASDN2': -1 # Answer downvote by me
+      'ASDN1': -2,  # Answer downvote
+      'ASDN2': -1,  # Answer downvote by me
+      'ASAC1': 15,  # Answer accepted - answerer
+      'ASAC2': 2    # Answer accepted - acceptor
     }
 
 
@@ -42,6 +44,9 @@ class ReputationEngine(object):
       'category': 'QUSUP'
     })
     # update reputation in questionvote
+    if self.instance.reputation:
+      self.instance.reputation.delete()
+
     self.instance.reputation = reputation
     self.instance.save()
     # compute overall score and update in usermeta
@@ -67,6 +72,9 @@ class ReputationEngine(object):
       'category': 'QUSDN'
     })
     # update reputation in questionvote
+    if self.instance.reputation:
+      self.instance.reputation.delete()
+
     self.instance.reputation = reputation
     self.instance.save()
     # compute overall score and update in usermeta
@@ -85,8 +93,16 @@ class ReputationEngine(object):
       'category': 'ANSUP'
     })
     # update reputation in questionvote
+    if self.instance.reputation:
+      self.instance.reputation.delete()
+
     self.instance.reputation = reputation
     self.instance.save()
+
+    if self.instance.downvote_reputation:
+      downvote_initiator = self.instance.downvote_reputation.user
+      self.instance.downvote_reputation.delete()
+      self.update_score_user_meta(created_by=downvote_initiator)
 
     # compute overall score and update in usermeta
     self.update_score_user_meta(created_by=self.instance.answer.created_by)    
@@ -115,6 +131,9 @@ class ReputationEngine(object):
       'category': 'ASDN1'
     })
     # update reputation in questionvote
+    if self.instance.reputation:
+      self.instance.reputation.delete()
+
     self.instance.reputation = reputation
     self.instance.save()
     # compute overall score and update in usermeta
@@ -133,6 +152,37 @@ class ReputationEngine(object):
     self.instance.downvote_reputation = reputation
     self.instance.save()
     # compute overall score and update in usermeta
-    self.update_score_user_meta(created_by=self.initiator) 
+    self.update_score_user_meta(created_by=self.initiator)
+
+
+
+  def create_score_answer_accepted(self):
+    # create userreputation
+    answerer_reputation = UserReputation.objects.create(**{
+      'user': self.instance.created_by,
+      'points': self.vote_scoring['ASAC1'],
+      'comment': '',
+      'created_by': self.initiator,
+      'created_on': datetime.now(),
+      'category': 'ASAC1'
+    })
+
+    acceptor_reputation = UserReputation.objects.create(**{
+      'user': self.initiator,
+      'points': self.vote_scoring['ASAC2'],
+      'comment': '',
+      'created_by': self.initiator,
+      'created_on': datetime.now(),
+      'category': 'ASAC2'
+    })
+
+    # update reputation
+    self.instance.answerer_reputation = answerer_reputation
+    self.instance.acceptor_reputation = acceptor_reputation
+    self.instance.save()
+
+    # compute overall score and update in usermeta
+    self.update_score_user_meta(created_by=self.instance.created_by)  
+    self.update_score_user_meta(created_by=self.initiator)  
 
     
