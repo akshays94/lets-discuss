@@ -6,13 +6,15 @@ from django.views.generic.base import RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 
-from .users.views import UserViewSet, UserCreateViewSet, CustomAuthToken
+from .users.views import UserViewSet, UserCreateViewSet, CustomAuthToken, UserReputationViewSet, UserLeaderboardViewSet
 from .qna.viewsets.questions import QuestionViewSet
 from .qna.viewsets.answers import AnswerViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'users', UserCreateViewSet)
+router.register(r'reputations', UserReputationViewSet, basename='reputations')
+router.register(r'leaderboard', UserLeaderboardViewSet, basename='leaderboard')
 router.register(r'questions', QuestionViewSet, basename='questions')
 router.register(r'answers', AnswerViewSet, basename='answers')
 

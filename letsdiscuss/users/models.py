@@ -30,8 +30,9 @@ class UserMeta(models.Model):
   tagline = models.CharField(max_length=128)
 
   def __str__(self):
-    return 'id({id}) -> [P{score}] = {name}'.format(**{
+    return 'id({id}) uid({uid}) -> [P{score}] = {name}'.format(**{
       'name': self.user.username,
+      'uid': self.user.id,
       'score': self.score,
       'id': self.id
     })
@@ -62,7 +63,8 @@ class UserReputation(models.Model):
 										choices=REPUTATION_CATEGORIES, default='QUSUP')
 
   def __str__(self):
-    return 'id({id}) -> {cat} [P({points})] = {name} <- {cb}'.format(**{
+    return 'id({id}) uid({uid}) -> {cat} [P({points})] = {name} <- {cb}'.format(**{
+      'uid': self.user.id,
       'name': self.user.username,
       'cb': self.created_by.username,
       'points': self.points,
