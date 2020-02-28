@@ -12,9 +12,18 @@ class QuestionSerializer(serializers.ModelSerializer):
     is_upvoted = serializers.ReadOnlyField()
     is_downvoted = serializers.ReadOnlyField()
     is_created_by_me = serializers.ReadOnlyField()
+    is_starred = serializers.ReadOnlyField()
     answer_marked_correct = serializers.ReadOnlyField()
     created_on_humanized = serializers.SerializerMethodField()
     created_on_date = serializers.SerializerMethodField()
+    answers_count = serializers.SerializerMethodField()
+    is_marked_correct_answer = serializers.SerializerMethodField()
+
+    def get_answers_count(self, obj):
+      return obj.answer_set.count()
+
+    def get_is_marked_correct_answer(self, obj):
+      return obj.answer_set.filter(is_correct=True).exists()    
 
     def get_created_on_humanized(self, obj):
         return timesince(obj.created_on)
@@ -25,7 +34,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = [
-            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted', 'is_created_by_me', 'answer_marked_correct', 'created_on_humanized', 'created_on_date'
+            'id', 'title', 'content', 'votes', 'created_by', 'created_on', 'is_voted', 'is_upvoted', 'is_downvoted', 'is_created_by_me', 'answer_marked_correct', 'created_on_humanized', 'created_on_date', 'is_starred', 'answers_count', 'is_marked_correct_answer'
         ] 
 
 

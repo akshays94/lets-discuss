@@ -52,7 +52,7 @@ class UserLeaderboardViewSet(viewsets.ModelViewSet):
     """
     Get leaderboard
     """
-    queryset = UserMeta.objects.exclude(score=0).order_by('-score')[:10]
+    queryset = UserMeta.objects.exclude(score__lte=0).order_by('-score')[:10]
     serializer_class = UserMetaSerializer
 
 

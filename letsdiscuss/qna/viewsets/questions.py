@@ -17,6 +17,10 @@ class QuestionViewSet(viewsets.ViewSet):
         queryset = Question.objects.all().order_by('-created_on')
         for question in queryset:
           the_question_vote = question.questionvote_set.filter(created_by=request.user.id)
+          
+          is_starred_question = question.questionstarred_set.filter(created_by=request.user.id)
+          question.is_starred = is_starred_question.exists()
+
           if the_question_vote.exists():
             the_question_vote = the_question_vote.first()
             question.is_voted = True
@@ -35,6 +39,10 @@ class QuestionViewSet(viewsets.ViewSet):
         try:
             original_question = Question.objects.get(id=pk)
             the_question_vote = original_question.questionvote_set.filter(created_by=request.user.id)
+
+            is_starred_question = original_question.questionstarred_set.filter(created_by=request.user.id)
+            original_question.is_starred = is_starred_question.exists()  
+
             if the_question_vote.exists():
               the_question_vote = the_question_vote.first()
               original_question.is_voted = True
@@ -164,6 +172,7 @@ class QuestionViewSet(viewsets.ViewSet):
 
         return Response({'message': 'DOWNVOTED'})
 
+    
     @action(url_path="revoke-vote", methods=['post'], detail=True)
     def revoke_vote(self, request, pk=None):
         voter = request.user
@@ -243,6 +252,44 @@ class QuestionViewSet(viewsets.ViewSet):
             })   
         except Question.DoesNotExist:
             return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+    @action(url_path="mark-star", methods=['post'], detail=True)
+    def mark_star(self, request, pk=None):
+      voter = request.user
+      try:
+          original_question = Question.objects.get(id=pk)    
+      except Question.DoesNotExist:
+          return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+
+      is_already_starred = QuestionStarred.objects.filter(question=original_question, created_by=voter).exists()
+
+      if is_already_starred:
+        return Response({'message': 'Already starred'}, status=status.HTTP_409_CONFLICT)
+
+      QuestionStarred.objects.create(**{
+        'question': original_question,
+        'created_by': voter,
+        'modified_by': voter
+      })
+      return Response({'message': 'STARRED'})
+
+
+    @action(url_path="unmark-star", methods=['post'], detail=True)
+    def unmark_star(self, request, pk=None):
+      voter = request.user
+      try:
+          original_question = Question.objects.get(id=pk)    
+      except Question.DoesNotExist:
+          return Response({'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+
+      is_already_starred = QuestionStarred.objects.filter(question=original_question, created_by=voter)
+
+      if is_already_starred.exists():
+        is_already_starred.delete()
+        return Response({'message': 'UNSTARRED'})
+      
+      return Response({'message': 'Already unstarred'}, status=status.HTTP_404_NOT_FOUND)   
 
 
 

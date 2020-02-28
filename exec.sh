@@ -28,6 +28,11 @@ elif [ "$1" == "heroku-bash" ]; then
     echo -e "Opening heroku bash ..."
     heroku run bash
 
+elif [ "$1" == "heroku-migrate" ]; then
+    echo -e "Opening heroku bash ..."
+    heroku run bash
+    python manage.py migrate
+
 elif [ "$1" == "heroku-deploy" ]; then
     echo -e "Deploying on heroku ..."
     heroku container:push web

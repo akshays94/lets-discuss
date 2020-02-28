@@ -71,6 +71,19 @@ def save_votes_count(sender, instance=None, created=False, **kwargs):
         instance.question.save()
 
 
+
+class QuestionStarred(BaseModel):
+    
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{id}: qid[{qid}] ({uname})'.format(**{
+            'id': self.id,
+            'qid': self.question_id,
+            'uname': self.created_by.username
+        })   
+
+
 class Answer(BaseModel):
 
     question    = models.ForeignKey(Question, on_delete=models.CASCADE)
