@@ -5,10 +5,11 @@ from rest_framework.decorators import action
 from letsdiscuss.qna.models import Question, QuestionStarred, QuestionVote, Answer
 from letsdiscuss.users.models import User
 from letsdiscuss.qna.reputation_engine import ReputationEngine
-from letsdiscuss.qna.serializers1.questions import QuestionModelSerializer, CreateQuestionSerializer
 
 from letsdiscuss.qna.mixins.read_write_serializer_mixin import ReadWriteSerializerMixin
-from letsdiscuss.qna.serializers1.answers import AnswerModelSerializer, CreateAnswerSerializer
+
+from letsdiscuss.qna.serializers.questions import QuestionModelSerializer, CreateQuestionSerializer
+from letsdiscuss.qna.serializers.answers import AnswerModelSerializer, CreateAnswerSerializer
 
 
 class QuestionViewSet(ReadWriteSerializerMixin, viewsets.ModelViewSet):

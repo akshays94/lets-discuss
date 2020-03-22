@@ -1,30 +1,18 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from rest_framework import generics
-from rest_framework import status
 from rest_framework.decorators import action
 
 from letsdiscuss.qna.models import *
-from letsdiscuss.qna.serializers import *
 from letsdiscuss.users.models import User
 from letsdiscuss.qna.reputation_engine import ReputationEngine
 
-class AnswerViewSet(viewsets.ViewSet):
-    
-    def update(self, request, pk=None):
-        data = request.data.dict()
-        data.update({
-            'created_by': request.user.id
-        })
-        write_serializer = CreateAnswerSerializer(data=data)
-        write_serializer.is_valid(raise_exception=True)
+from letsdiscuss.qna.serializers.answers import CreateAnswerSerializer
 
-        original_answer = Answer.objects.get(id=pk)
-        instance = write_serializer.update(original_answer, data)
-        
-        read_serializer = AnswerSerializer(instance)
-        return Response(read_serializer.data)
+class AnswerViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    
+    queryset = Answer.objects.all()
+    serializer_class = CreateAnswerSerializer
 
 
     def destroy(self, request, pk=None):
