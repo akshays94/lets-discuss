@@ -1,15 +1,17 @@
 from django.db import models
-from letsdiscuss.users.models import User, UserReputation
 from django.utils import timezone
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+
+from letsdiscuss.users.models import User, UserReputation
+from letsdiscuss.qna.managers import BaseModelManager
 
 class BaseModel(models.Model):
     
     class Meta:
         abstract = True
 
-    # objects			= BaseModelManager()
+    objects			  = BaseModelManager()
     created_by 		= models.ForeignKey(User, 
                             related_name='%(app_label)s_%(class)s_creator', 
                             on_delete=models.CASCADE)
